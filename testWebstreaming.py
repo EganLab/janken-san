@@ -4,6 +4,7 @@
 # import the necessary packages
 from pyimagesearch.motion_detection import SingleMotionDetector
 from imutils.video import VideoStream
+from mobilenet_v2 import mobilenet_v2, MobileNetV2
 from flask import Response
 from flask import Flask
 from flask import render_template
