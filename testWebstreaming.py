@@ -17,6 +17,8 @@ import cv2
 from torchvision import transforms
 import torch
 import torch.nn.functional as F
+import numpy as np
+from PIL import Image
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
@@ -29,7 +31,7 @@ app = Flask(__name__)
 
 # initialize the video stream and allow the camera sensor to
 # warmup
-#vs = VideoStream(usePiCamera=1).start()
+# vs = VideoStream(usePiCamera=1).start()
 vs = VideoStream(src=0).start()
 time.sleep(2.0)
 
@@ -103,6 +105,7 @@ def detect_hand(frameCount):
             #     cv2.rectangle(frame, (minX, minY), (maxX, maxY),
             #                   (0, 0, 255), 2)
 
+            frame = Image.fromarray(frame)
             image1 = preprocess_image(frame)
             # print(image.shape)
             output = model(image1)
