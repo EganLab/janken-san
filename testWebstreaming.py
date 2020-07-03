@@ -113,7 +113,8 @@ def detect_hand(frameCount):
             _, predicted = torch.max(output.data, 1)
             print(convert[int(predicted)])
 
-            cv2.putText(frame, convert[int(predicted)])
+            cv2.putText(frame, convert[int(predicted)], (20, frame.shape[0]-10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
         # update the background model and increment the total number
         # of frames read thus far
