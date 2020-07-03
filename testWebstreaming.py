@@ -13,6 +13,9 @@ import datetime
 import imutils
 import time
 import cv2
+from torchvision import transforms
+import torch
+import torch.nn.functional as F
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
@@ -30,13 +33,27 @@ vs = VideoStream(src=0).start()
 time.sleep(2.0)
 
 
+def preprocess_image(pil_image):
+    val_tfms = transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+    image = val_tfms(pil_image)
+    image = image.unsqueeze_(0).cpu()
+    # image /= 255.00
+    image = F.interpolate(image, size=256)
+    return image
+
+
 @app.route("/")
 def index():
     # return the rendered template
     return render_template("index.html")
 
 
-def detect_motion(frameCount):
+def detect_hand(frameCount):
     # grab global references to the video stream, output frame, and
     # lock variables
     global vs, outputFrame, lock
@@ -45,6 +62,15 @@ def detect_motion(frameCount):
     # read thus far
     md = SingleMotionDetector(accumWeight=0.1)
     total = 0
+
+    convert = {0: 'la', 1: 'dam', 2: 'keo'}
+    checkpoint = torch.load('MBN_epoch_1_loss_0.10.pth',
+                            map_location=torch.device('cpu'))
+    # print(checkpoint)
+    model = MobileNetV2(num_classes=3)
+    model.load_state_dict(checkpoint)
+    # print(model)
+    model.eval()
 
     # loop over frames from the video stream
     while True:
@@ -66,15 +92,22 @@ def detect_motion(frameCount):
         # continue to process the frame
         if total > frameCount:
             # detect motion in the image
-            motion = md.detect(gray)
+            # motion = md.detect(gray)
 
-            # cehck to see if motion was found in the frame
-            if motion is not None:
-                # unpack the tuple and draw the box surrounding the
-                # "motion area" on the output frame
-                (thresh, (minX, minY, maxX, maxY)) = motion
-                cv2.rectangle(frame, (minX, minY), (maxX, maxY),
-                              (0, 0, 255), 2)
+            # # cehck to see if motion was found in the frame
+            # if motion is not None:
+            #     # unpack the tuple and draw the box surrounding the
+            #     # "motion area" on the output frame
+            #     (thresh, (minX, minY, maxX, maxY)) = motion
+            #     cv2.rectangle(frame, (minX, minY), (maxX, maxY),
+            #                   (0, 0, 255), 2)
+
+            image1 = preprocess_image(frame)
+            # print(image.shape)
+            output = model(image1)
+            # print(output)
+            _, predicted = torch.max(output.data, 1)
+            print(convert[int(predicted)])
 
         # update the background model and increment the total number
         # of frames read thus far
@@ -133,7 +166,7 @@ if __name__ == '__main__':
     args = vars(ap.parse_args())
 
     # start a thread that will perform motion detection
-    t = threading.Thread(target=detect_motion, args=(
+    t = threading.Thread(target=detect_hand, args=(
         args["frame_count"],))
     t.daemon = True
     t.start()
