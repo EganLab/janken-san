@@ -38,6 +38,7 @@ time.sleep(2.0)
 
 def preprocess_image(pil_image):
     val_tfms = transforms.Compose([
+        transforms.ToPILImage(),
         transforms.Resize((256, 256)),
         transforms.ToTensor(),
         transforms.Normalize(
@@ -105,7 +106,6 @@ def detect_hand(frameCount):
             #     cv2.rectangle(frame, (minX, minY), (maxX, maxY),
             #                   (0, 0, 255), 2)
 
-            frame = Image.fromarray(frame)
             image1 = preprocess_image(frame)
             # print(image.shape)
             output = model(image1)

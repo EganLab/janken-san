@@ -11,6 +11,7 @@ import imutils
 
 def preprocess_image(pil_image):
     val_tfms = transforms.Compose([
+        transforms.ToPILImage(),
         transforms.Resize((256, 256)),
         transforms.ToTensor(),
         transforms.Normalize(
