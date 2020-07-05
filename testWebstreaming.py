@@ -123,7 +123,7 @@ def detect_hand(frameCount):
 
             human = int(predicted)
 
-            cv2.putText(frame, convert[int(predicted)], (20, frame.shape[0]-10),
+            cv2.putText(frame, convert[int(predicted)], (10, frame.shape[0]-30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
             if human == 0 and isEnd == 1:  # kéo
