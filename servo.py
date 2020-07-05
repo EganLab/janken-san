@@ -32,6 +32,7 @@ def runUpServo(PIN):
     p.start(2.5)  # Initialization
     try:
         p.ChangeDutyCycle(7.5)  # turn towards 90 degree
+        time.sleep(0.2)
 
     except KeyboardInterrupt:
         p.stop()
@@ -54,5 +55,6 @@ def runDownServo():
     p0.start(2.5)  # Initialization
     p1.start(2.5)  # Initialization
     p2.start(2.5)  # Initialization
+    time.sleep(0.2)
 
     GPIO.cleanup()
