@@ -83,7 +83,7 @@ def detect_hand(frameCount):
     man = 0
 
     mapping = [22, 27, 17]
-    naming = ['scissors', 'rock', 'paper']
+    naming = ['paper', 'rock', 'scissors']
 
     isEnd = 1
 
@@ -97,7 +97,7 @@ def detect_hand(frameCount):
         # read the next frame from the video stream, resize it,
         # convert the frame to grayscale, and blur it
         # robot random
-        x = randint(1, 3)
+        x = randint(0, 2)
         frame = vs.read()
         frame = imutils.resize(frame, width=400)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -126,35 +126,35 @@ def detect_hand(frameCount):
             cv2.putText(frame, convert[int(predicted)], (10, frame.shape[0]-30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
-            if human == 0 and isEnd == 1:  # kéo
+            if human == 0 and isEnd == 1:  # la
                 isEnd = 0
-                runUpServo(mapping[x-1])
-                if x == 1:
-                    print('Robot ' + naming[x-1] +
+                runUpServo(mapping[x])
+                if x == 0:
+                    print('Robot ' + naming[x] +
                           ' x human ' + naming[human]+' : Draw')
-                elif x == 2:
+                elif x == 1:
                     print(
-                        'Robot ' + naming[x-1]+' x human ' + naming[human]+' : Robot win')
-                    robot += 1
+                        'Robot ' + naming[x]+' x human ' + naming[human]+' : Human win')
+                    man += 1
                 else:
                     print(
-                        'Robot ' + naming[x-1]+' x human ' + naming[human]+' : Human win')
-                    man += 1
+                        'Robot ' + naming[x]+' x human ' + naming[human]+' : Robot win')
+                    robot += 1
 
-            elif human == 2 and isEnd == 1:  # lá
+            elif human == 2 and isEnd == 1:  # keo
                 isEnd = 0
-                runUpServo(mapping[x-1])
-                if x == 1:
+                runUpServo(mapping[x])
+                if x == 0:
                     print(
-                        'Robot ' + naming[x-1]+' x human ' + naming[human]+' : Robot win')
-                    robot += 1
-                elif x == 2:
-                    print(
-                        'Robot ' + naming[x-1]+' x human ' + naming[human]+' : Human win')
+                        'Robot ' + naming[x]+' x human ' + naming[human]+' : Human win')
                     man += 1
+                elif x == 1:
+                    print(
+                        'Robot ' + naming[x]+' x human ' + naming[human]+' : Robot  win')
+                    robot += 1
                 else:
-                    print('Robot ' + naming[x-1] +
-                          ' x human ' + naming[human - 1] + ' : Draw')
+                    print('Robot ' + naming[x] +
+                          ' x human ' + naming[human] + ' : Draw')
 
             elif human == 1:  # reset game
                 runDownServo()
