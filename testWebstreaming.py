@@ -19,6 +19,8 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from PIL import Image
+from servo import *
+from random import *
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
@@ -76,10 +78,26 @@ def detect_hand(frameCount):
     # print(model)
     model.eval()
 
+    # set robot and man score
+    robot = 0
+    man = 0
+
+    mapping = [22, 27, 17]
+    naming = ['scissors', 'rock', 'paper']
+
+    isEnd = 1
+
+    # 2 = scissors = GPIO17
+    # 1 = rock = GPIO27
+    # 0 = paper = GPIO22
+    # 17 keo 27 bua 22 la
+
     # loop over frames from the video stream
     while True:
         # read the next frame from the video stream, resize it,
         # convert the frame to grayscale, and blur it
+        # robot random
+        x = randint(1, 3)
         frame = vs.read()
         frame = imutils.resize(frame, width=400)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -95,26 +113,53 @@ def detect_hand(frameCount):
         # number to construct a reasonable background model, then
         # continue to process the frame
         if total > frameCount:
-            # detect motion in the image
-            # motion = md.detect(gray)
-
-            # # cehck to see if motion was found in the frame
-            # if motion is not None:
-            #     # unpack the tuple and draw the box surrounding the
-            #     # "motion area" on the output frame
-            #     (thresh, (minX, minY, maxX, maxY)) = motion
-            #     cv2.rectangle(frame, (minX, minY), (maxX, maxY),
-            #                   (0, 0, 255), 2)
 
             image1 = preprocess_image(frame)
-            # print(image.shape)
+
             output = model(image1)
-            # print(output)
+
             _, predicted = torch.max(output.data, 1)
             print(convert[int(predicted)])
 
+            human = int(predicted)
+
             cv2.putText(frame, convert[int(predicted)], (20, frame.shape[0]-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+
+            if human == 0 and isEnd == 1:  # kéo
+                isEnd = 0
+                runUpServo(mapping[x-1])
+                if x == 1:
+                    print('Robot ' + naming[x-1] +
+                          ' x human ' + naming[human]+' : Draw')
+                elif x == 2:
+                    print(
+                        'Robot ' + naming[x-1]+' x human ' + naming[human]+' : Robot win')
+                    robot += 1
+                else:
+                    print(
+                        'Robot ' + naming[x-1]+' x human ' + naming[human]+' : Human win')
+                    man += 1
+
+            elif human == 2 and isEnd == 1:  # lá
+                isEnd = 0
+                runUpServo(mapping[x-1])
+                if x == 1:
+                    print(
+                        'Robot ' + naming[x-1]+' x human ' + naming[human]+' : Robot win')
+                    robot += 1
+                elif x == 2:
+                    print(
+                        'Robot ' + naming[x-1]+' x human ' + naming[human]+' : Human win')
+                    man += 1
+                else:
+                    print('Robot ' + naming[x-1] +
+                          ' x human ' + naming[human - 1] + ' : Draw')
+
+            elif human == 1:  # reset game
+                runDownServo()
+                isEnd = 1
+                print('Scoreboard Robot vs Human: %d : %d' % (robot, man))
 
         # update the background model and increment the total number
         # of frames read thus far
